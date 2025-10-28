@@ -1,8 +1,9 @@
 class UserManagement:
   def __init__(self):
     self.users = []
+    self.user_transactions = {}
 
-  def sign_up(self, user):
+  def sign_up(self):
     email = input("Enter your email: ")
     user_name = input("Create a username: ")
     password = input("Create a password: ")
@@ -20,61 +21,31 @@ class UserManagement:
     'username': user_name,
     'password': password
     })
+    self.user_transactions[user_name] = []
     print("Successfully signed up!")
     
 
   def login(self):
     user_name = input("Enter your username: ")
-    password = input("Enter you password: ")
+    password = input("Enter your password: ")
     
     for user in self.users:
       if user['username'] == user_name:
         if user['password'] == password:
           print("Login Successfull")
-          return
+          return user_name
         else:
           print("Incorrect password")
-          return
+          return None
     
     print('Username not found')
+    return None
 
 class TransactionManagement:
-  def __init__(self):
-    self.transaction = []
+  def __init__(self, user_manager):
+    self.user_manager = user_manager
 
-  def add_transaction(self, transaction):
-    self.transaction.append(transaction)
-    print(f"Transaction {transaction} added.")
-  
-  def remove_transaction(self, transaction):
-    if transaction in self.transaction:
-      self.transaction.remove(transaction)
-      print(f'Transaction {transaction} removed.')
-    else:
-      print(f'Transaction {transaction} not found.')
-
-  def view_transactions(self):
-    print('Saved Transactions:')
-    for index, tr in enumerate(self.transaction):
-      print(f"{index + 1}. {tr}")
-
-calling = TransactionManagement()
-
-while True:
-  print('===========================')
-  print('Personal Finance Dashboard')
-  print('1. Add Transaction')
-  print('2. Remove Transaction')
-  print('3. View Transactions')
-  print('4. Exit')
-  print('===========================')
-  
-  try:
-    user = int(input('Enter an option: '))
-  except ValueError:
-    print('Invalid input. Please enter a number.')
-    continue
-  if user == 1:
+  def add_transaction(self, username):
     date = input("Enter today's date: ")
     category = input("Enter a category: ")
     amount = float(input("Enter how much was it: "))
@@ -82,33 +53,98 @@ while True:
     type = input("Was this an expense or income: ")
 
     transaction = {
-            "date": date,
-            "category": category,
-            "amount": amount,
-            "description": description,
-            "type": type
-        }
-    
-    calling.add_transaction(transaction)
+    "date": date,
+    "category": category,
+    "amount": amount,
+    "description": description,
+    "type": type
+    }
+    self.user_manager.user_transactions[username].append(transaction)
+    print(f"Transaction added for {username}")
 
-  elif user == 2:
-    calling.view_transactions()
+
+  def remove_transaction(self, username):
+    transactions = self.user_manager.user_transactions.get(username, [])
+    if not transactions:
+      print("No transactions to remove.")
+      return
+    
+    self.view_transactions(username)
     try:
       remove_index = int(input("Enter the number of the transaction to remove: ")) - 1
-      if 0 <= remove_index < len(calling.transaction):
-        removed = calling.transaction.pop(remove_index)
+      if 0 <= remove_index < len(transactions):
+        removed = transactions.pop(remove_index)
         print(f"Transaction removed: {removed}")
       else:
-        print("Invalid transaction.")
+        print("Invalid transaction number.")
     except ValueError:
       print("Please enter a valid number.")
 
-  elif user == 3:
-    calling.view_transactions()
-  
-  elif user == 4:
-    print("Exiting dashboard!")
+  def view_transactions(self, username):
+    transactions = self.user_manager.user_transactions.get(username, [])
+    if not transactions:
+      print("No transactions found.")
+      return
+    print(f"\nSaved Transactions for {username}:")
+    for index, tr in enumerate(transactions):
+      print(f"{index + 1}. {tr}")
+
+# Calling Classes
+calling_um = UserManagement()
+calling_tr = TransactionManagement(calling_um)
+
+
+while True:
+  # Login Page
+  print('\n1. Sign Up')
+  print('2. Login')
+  print('3. Exit')
+  try:
+    user_choice = int(input('Enter an option: '))
+  except ValueError:
+    print("Invalid input. Please enter a number.")
+    continue
+
+  if user_choice == 1:
+    calling_um.sign_up()
+
+  elif user_choice == 2:
+    logged_in_user = calling_um.login()
+    if not logged_in_user:
+      continue
+
+    # Logged in menu
+    while True:
+      print('\n===========================')
+      print(f"Welcome, {logged_in_user}")
+      print('Personal Finance Dashboard')
+      print('1. Add Transaction')
+      print('2. Remove Transaction')
+      print('3. View Transactions')
+      print('4. Logout')
+      print('===========================')
+      
+      try:
+        choice = int(input('Enter an option: '))
+      except ValueError:
+        print('Invalid input. Please enter a number.')
+        continue
+
+      if choice == 1:
+        calling_tr.add_transaction(logged_in_user)
+      elif choice == 2:
+        calling_tr.remove_transaction(logged_in_user)
+      elif choice == 3:
+        calling_tr.view_transactions(logged_in_user)
+      elif choice == 4:
+        print("Logging out")
+        break
+      else:
+        print('Invalid option please try again.')
+
+  elif user_choice == 3:
+    print("Goodbye!")
     break
 
   else:
-    print('Invalid option please try again.')
+    print('Invalid. Try again!')
