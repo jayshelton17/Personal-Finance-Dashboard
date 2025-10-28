@@ -1,6 +1,42 @@
 class UserManagement:
   def __init__(self):
-    self.users
+    self.users = []
+
+  def sign_up(self, user):
+    email = input("Enter your email: ")
+    user_name = input("Create a username: ")
+    password = input("Create a password: ")
+
+    for user in self.users:
+      if user['email'] == email:
+        print("Email already exists. Try again!")
+        return
+      elif user['username'] == user_name:
+        print("Username already taken. Try again!")
+        return
+      
+    self.users.append({
+    'email': email,
+    'username': user_name,
+    'password': password
+    })
+    print("Successfully signed up!")
+    
+
+  def login(self):
+    user_name = input("Enter your username: ")
+    password = input("Enter you password: ")
+    
+    for user in self.users:
+      if user['username'] == user_name:
+        if user['password'] == password:
+          print("Login Successfull")
+          return
+        else:
+          print("Incorrect password")
+          return
+    
+    print('Username not found')
 
 class TransactionManagement:
   def __init__(self):
