@@ -1,7 +1,17 @@
+import bcrypt
+
 class UserManagement:
   def __init__(self):
     self.users = []
     self.user_transactions = {}
+
+  def hash_password(self, password: str) -> str:
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
+    return hashed.decode('utf-8')
+  
+  def verify_password(self, password: str, hashed: str) -> bool:
+    return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
 
   def sign_up(self):
     email = input("Enter your email: ")
@@ -15,23 +25,23 @@ class UserManagement:
       elif user['username'] == user_name:
         print("Username already taken. Try again!")
         return
-      
+
+    hashed_pw = self.hash_password(password)  
     self.users.append({
     'email': email,
     'username': user_name,
-    'password': password
+    'password': hashed_pw
     })
     self.user_transactions[user_name] = []
     print("Successfully signed up!")
     
-
   def login(self):
     user_name = input("Enter your username: ")
     password = input("Enter your password: ")
     
     for user in self.users:
       if user['username'] == user_name:
-        if user['password'] == password:
+        if self.verify_password(password, user['password']):
           print("Login Successfull")
           return user_name
         else:
