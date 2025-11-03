@@ -1,4 +1,6 @@
 from pydantic import BaseModel
+from datetime import datetime
+from typing import Optional
 
 class SignUpData(BaseModel):
   email: str
@@ -6,14 +8,13 @@ class SignUpData(BaseModel):
   password: str
 
 class LogInData(BaseModel):
-  email: str
   username: str
   password: str
 
 class TransactionData(BaseModel):
   username: str
-  date: str
-  category: str
   amount: float
-  description: str
   type: str
+  category_id: Optional[int] = None
+  description: Optional[str] = None
+  date: Optional[datetime] = None
